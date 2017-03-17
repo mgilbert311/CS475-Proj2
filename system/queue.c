@@ -30,7 +30,7 @@ void	printqueue(struct queue *q)
  */
 bool8	isempty(struct queue *q)
 {
-	return (q->head == NULL) ? TRUE : FALSE;
+	return (q->size == 0);
 }
 
 /**
@@ -40,8 +40,7 @@ bool8	isempty(struct queue *q)
  */
 bool8	nonempty(struct queue *q)
 {
-
-	return (q->head != NULL) ? TRUE : FALSE;
+	return (q == NULL || q->size >0);
 }
 
 
@@ -53,7 +52,7 @@ bool8	nonempty(struct queue *q)
 bool8	isfull(struct queue *q)
 {
 	//Check if there are >= least NPROC processes in the queue
-	return (q->size >= NPROC) ? TRUE : FALSE;
+	return (q->size >= NPROC);
 
 }
 
@@ -65,33 +64,61 @@ bool8	isfull(struct queue *q)
  *
  * @return pid on success, SYSERR otherwise
  */
-pid32 enqueue(pid32 pid, struct queue *q)
+pid32 enqueue(pid32 pid, struct queue *q, int32 key)
 {
+       //Taken David Chiu's Enqueue method
+       
         //If queue is full or pid is illegal, return SYSERR
-		if(isfull(q) || isbadpid(pid)){
+		if(isfull(q)){
 			return SYSERR;
 		}
         //Allocate space on heap for a new QEntry
-        struct qentry* procToEnqueue = (struct qentry*) malloc(sizeof(struct qentry));
-
-        //Initialize the new QEntry
+        struct qentry *procToEnqueue = (struct qentry*) malloc(sizeof(struct qentry));
+        //Initialize entry
         procToEnqueue->pid = pid;
-        procToEnqueue->prev = q->tail;
+        procToEnqueue->key = key;
         procToEnqueue->next = NULL;
+        procToEnqueue->prev = NULL;
 
-        //Insert as head if q is empty
-        if(isempty(q)){
-        	q->head = procToEnqueue;
-        	q->tail = procToEnqueue;
-        }
-        else{
-        	q->tail->next = procToEnqueue;
-        	q->tail = procToEnqueue;
-        }
-        //Increment q size
+
+		struct qentry *current;
+		struct qentry *previous;
+		current = q->head;
+
+        //Determine where the process should be placed based on priority
+		while(current != NULL && current->key >= key){
+			current = current->next;
+		}		
+				//Put at the tail
+				if(current == NULL){
+					previous = q->tail;
+				}else{
+					previous = current->prev;
+					
+				}
+				
+				
+				procToEnqueue->prev = previous;
+				procToEnqueue->next = current;
+				
+				if(previous != NULL){
+					previous->next = procToEnqueue;
+				}
+				if(current != NULL){
+					current->prev = procToEnqueue;
+				}
+				if(previous == NULL){
+					q->head = procToEnqueue;
+				}
+				if(current == NULL){
+					q->tail = procToEnqueue;
+				}
+				
+				
+        
         q->size++;
         //Return the pid on success
-        return pid;
+        return OK;
 }
 
 
@@ -106,22 +133,29 @@ pid32 dequeue(struct queue *q)
 		if(isempty(q)){
 			return EMPTY;
 		}
-		else{
+		
         	//Get the head entry of the queue
-			struct qentry* head = q->head;
+			struct qentry *head = q->head;
+			struct qentry *newHead = head->next;
 			pid32 pid = head->pid; 
 
         	//Unlink the head entry from the rest
-			q->head = q->head->next;
 
+			if(newHead != NULL){
+				newHead->prev = NULL;
+			}else{
+				q->tail = NULL;
+			}
         	//Free up the space on the heap
-			free(head, sizeof(head));
+			q->head = newHead;
+			q->size--;
+			free(head, sizeof(struct qentry));
 
 			//Decrement q size
-			q->size--;
+
         	//Return the pid on success
 			return pid;
-		}
+		
 }
 
 
@@ -203,7 +237,7 @@ pid32	getlast(struct queue *q)
  * @param q	Pointer to the queue
  * @return pid on success, SYSERR if pid is not found
  */
-char	remove(pid32 pid, history *q)
+pid32	remove(pid32 pid, struct queue *q)
 {
 	//Return EMPTY if queue is empty
 	if(isempty(q)){
@@ -239,4 +273,4 @@ char	remove(pid32 pid, history *q)
 			return SYSERR;
 		}
 	}
-}
+

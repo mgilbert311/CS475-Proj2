@@ -29,7 +29,7 @@ extern	syscall	close(did32);
 extern	syscall	control(did32, int32, int32, int32);
 
 /* in file create.c */
-extern	pid32	create(void *, uint32, pri16, char *, uint32);
+extern	pid32	create(void *, uint32, pri16, char *, uint32, ...);
 
 /* in file ctxsw.S */
 extern	void	ctxsw(void *, void *);
@@ -38,7 +38,7 @@ extern	void	ctxsw(void *, void *);
 extern	uint32	dot2ip(char *, uint32 *);
 
 /* in file queue.c */
-extern	pid32	enqueue(pid32, struct queue *q, int32 key);	//TODO
+extern	pid32	enqueue(pid32, struct queue *q, int32 key);
 
 /* in file intutils.S */
 extern	intmask	disable(void);

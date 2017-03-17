@@ -38,6 +38,10 @@ typedef	int32	status;		/* returned status value (OK/SYSERR)	*/
 
 #define local	static		/* Local procedure or variable declar.	*/
 
+/* AGING POLICY - Use aging policy by setting AGING to TRUE or FALSE*/
+#define AGING TRUE
+
+
 /* Boolean constants */
 
 #define FALSE	0		/* Boolean False			*/

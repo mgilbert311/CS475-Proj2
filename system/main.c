@@ -20,7 +20,7 @@ void	printpid(int32 argc, int32 *argv)
 	int i;
 	for (i=0; i<argv[0]; i++)
 	{
-		kprintf("This is process %d (%s)\r\n", currpid, proctab[currpid].prname);
+		kprintf("This is process %d, priority %d, (%s)\r\n", currpid, proctab[currpid].prprio, proctab[currpid].prname);
 		resched();
 	}
 }
@@ -34,7 +34,9 @@ int	main(uint32 argc, uint32 *argv)
 	kprintf("Hello XINU WORLD!\r\n");
 
 	//priority of process is input as the 3rd argument of create()
-	ready(create((void*) printpid, INITSTK, 1, "PRINTER-1", 2, 1, args1++), FALSE);
+	
+	//Changed for the test case
+	ready(create((void*) printpid, INITSTK, 3, "PRINTER-1", 2, 1, args1++), FALSE);
 	ready(create((void*) printpid, INITSTK, 5, "PRINTER-B", 2, 1, args1++), FALSE);
 	ready(create((void*) printpid, INITSTK, 10, "PRINTER-C", 2, 1, args1++), FALSE);
 	ready(create((void*) printpid, INITSTK, 5, "PRINTER-D", 2, 1, args1++), FALSE);
